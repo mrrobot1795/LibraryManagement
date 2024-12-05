@@ -1,10 +1,12 @@
 package Library;
 
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 public class Library {
-    private ArrayList<Book> books;
-    private ArrayList<Member> members;
+    private static final Logger logger = LoggerConfig.getLogger(Library.class);
+    private final ArrayList<Book> books;
+    private final ArrayList<Member> members;
 
     public Library() {
         books = new ArrayList<>();
@@ -12,51 +14,72 @@ public class Library {
     }
 
     public void addBook(Book book) {
-        books.add(book);
-        System.out.println("Book added: " + book);
+        try {
+            if (book == null) throw new IllegalArgumentException("Book cannot be null");
+            books.add(book);
+            logger.info("Book added: " + book);
+        } catch (IllegalArgumentException e) {
+            logger.warning("Error adding book: " + e.getMessage());
+        }
     }
 
     public void registerMember(Member member) {
-        members.add(member);
-        System.out.println("Member Registered: " + member);
+        try {
+            if (member == null) throw new IllegalArgumentException("Member cannot be null.");
+            logger.info("Member registered: " + member);
+            System.out.println("Member Registered: " + member);
+        } catch (IllegalArgumentException e) {
+            logger.warning("Error registering message: " + e.getMessage());
+        }
     }
 
     public void issueBook(String isbn, String memberId) {
-        Book book = findBookByIsbn(isbn);
-        Member member = findMemberById(memberId);
+        try {
+            Book book = findBookByIsbn(isbn);
+            Member member = findMemberById(memberId);
 
-        if (book != null && member != null) {
+            if (book == null) throw new NullPointerException("Book with ISBN " + isbn + " not found.");
+            if (member == null) throw new NullPointerException("Member with ID " + memberId + " not found.");
+
             if (book.getAvailableCopies() > 0) {
                 member.issueBook(book);
-                System.out.println("Book issued: " + book.getTitle() + " to " + member.getName());
+                logger.info("Book issued: " + book.getTitle() + " to " + member.getName());
             } else {
-                System.out.println("Book not available");
+                throw new IllegalStateException("Book is not available for issuing.");
             }
-        } else {
-            System.out.println("Invalid Book or member details.");
+        } catch (Exception e) {
+            logger.severe("Error issuing book " + e.getMessage());
         }
     }
 
     public void returnBook(String isbn, String memberId) {
-        Book book = findBookByIsbn(isbn);
-        Member member = findMemberById(memberId);
+        try {
+            Book book = findBookByIsbn(isbn);
+            Member member = findMemberById(memberId);
 
-        if (book != null && member != null) {
+            if (book == null) throw new NullPointerException("Book with ISBN " + isbn + " not found.");
+            if (member == null) throw new NullPointerException("Member with ID " + memberId + " not found.");
+
+
             member.returnBook(book);
-            System.out.println("Book returned: " + book.getTitle() + " by " + member.getName());
-        } else {
-            System.out.println("Invalid book or member details.");
+            logger.info("Book returned: " + book.getTitle() + " by " + member.getName());
+        } catch (Exception e) {
+            logger.severe("Error returning book: " + e.getMessage());
         }
     }
 
     public void searchBook(String title) {
-        for (Book book : books) {
-            if (book.getTitle().equalsIgnoreCase(title)) {
-                System.out.println(book);
-                return;
+        try {
+            for (Book book : books) {
+                if (book.getTitle().equalsIgnoreCase(title)) {
+                    logger.info("Searching for book: " + book);
+                    return;
+                }
             }
+            throw new IllegalArgumentException("Book with title \"" + title + "\" not found");
+        } catch (Exception e) {
+            logger.severe("Error searching book: " + e.getMessage());
         }
-        System.out.println("Book not found");
     }
 
     private Book findBookByIsbn(String isbn) {
